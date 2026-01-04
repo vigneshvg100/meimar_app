@@ -61,26 +61,68 @@ class PlanTripForm extends GetView<PlantripFormController> {
 
               // Search City
               Obx(
-                () => Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    border: controller.currentField.value == "place"
-                        ? Border.all(color: const Color(0xFF0F4B38), width: 1.5)
-                        : Border.all(color: Colors.grey.shade300),
-                  ),
-                  child: TextField(
-                    onTap: () {
-                      controller.selectPlace();
-                    },
-                    controller: controller.cityController,
-                    decoration: const InputDecoration(
-                      prefixIcon: Icon(Icons.search, color: Colors.black),
-                      hintText: 'Search for city',
-                      hintStyle: TextStyle(color: Colors.grey),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(vertical: 14),
+                () => Column(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        border: controller.currentField.value == "place"
+                            ? Border.all(
+                                color: const Color(0xFF0F4B38),
+                                width: 1.5,
+                              )
+                            : Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: TextField(
+                        onTap: () {
+                          controller.selectPlace();
+                        },
+                        controller: controller.cityController,
+                        decoration: const InputDecoration(
+                          prefixIcon: Icon(Icons.search, color: Colors.black),
+                          hintText: 'Search for city',
+                          hintStyle: TextStyle(color: Colors.grey),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(vertical: 14),
+                        ),
+                      ),
                     ),
-                  ),
+                    if (controller.suggestions.isNotEmpty &&
+                        controller.currentField.value == "place")
+                      Container(
+                        margin: const EdgeInsets.only(top: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: controller.suggestions.map((suggestion) {
+                            return ListTile(
+                              title: Text(
+                                suggestion['display_name'] ?? "",
+                                style: const TextStyle(fontSize: 13),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              onTap: () =>
+                                  controller.selectSuggestion(suggestion),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    if (controller.isLoadingSuggestions.value)
+                      const LinearProgressIndicator(
+                        color: Color(0xFF0F4B38),
+                        backgroundColor: Colors.transparent,
+                      ),
+                  ],
                 ),
               ),
               const SizedBox(height: 24),

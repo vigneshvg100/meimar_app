@@ -6,6 +6,7 @@ abstract class Routes {
   static const HOME = _Paths.HOME;
   static const ITINERARY = _Paths.ITINERARY;
   static const PLAN_TRIP_FORM = _Paths.PLAN_TRIP_FORM;
+  static const GENERATING_LOADER = _Paths.GENERATING_LOADER;
 }
 
 abstract class _Paths {
@@ -13,4 +14,5 @@ abstract class _Paths {
   static const HOME = '/home';
   static const ITINERARY = '/itinerary';
   static const PLAN_TRIP_FORM = '/plan-trip-form';
+  static const GENERATING_LOADER = '/generating-loader';
 }

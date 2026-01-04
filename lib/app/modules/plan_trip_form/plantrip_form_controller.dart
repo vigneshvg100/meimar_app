@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:meimar_app/app/data/api/services/itinerary_service.dart';
+import 'package:meimar_app/app/data/api/services/location_service.dart';
+import 'package:meimar_app/app/routes/app_pages.dart';
 
 class PlantripFormController extends GetxController {
-  // Form Controllers
   final cityController = TextEditingController();
-  // final dateController = TextEditingController();
   final distanceController = TextEditingController();
-  final itineraryService =
-      ItineraryService(); // Keep for custom input if needed later? Or remove? logic: User didn't ask to remove, but design replaced it with cards. I'll keep it but not use it for now, or just ignore it.
+  final itineraryService = ItineraryService();
+  final locationService = LocationService();
 
   // Location State
   final latitude = Rx<double?>(null);
   final longitude = Rx<double?>(null);
   final selectedCityName = "".obs;
 
-  // State
+  // Search suggestions state
+  final suggestions = <Map<String, dynamic>>[].obs;
+  final isLoadingSuggestions = false.obs;
+
+  // Options State
   final selectedCompanion = 0.obs;
   final selectedDistanceOption = 0.obs;
   final radiusMap = [
@@ -39,15 +43,51 @@ class PlantripFormController extends GetxController {
   final companions = [
     {"title": "Solo", "icon": Icons.person_outline},
     {"title": "Couple", "icon": Icons.favorite_border},
-    {
-      "title": "Friends",
-      "icon": Icons.celebration_outlined,
-    }, // Using outlined icons for unselected state usually, but let's stick to standard
+    {"title": "Friends", "icon": Icons.celebration_outlined},
     {"title": "Family", "icon": Icons.family_restroom},
   ];
+
   @override
   void onInit() {
     super.onInit();
+    debounce(currentField, (_) {
+      if (currentField.value == "place" && cityController.text.length > 3) {
+        _searchPlaces(cityController.text);
+      }
+    }, time: const Duration(milliseconds: 500));
+
+    cityController.addListener(() {
+      if (currentField.value == "place") {
+        if (cityController.text.length > 3) {
+          _searchPlaces(cityController.text);
+        } else {
+          suggestions.clear();
+        }
+      }
+    });
+  }
+
+  Future<void> _searchPlaces(String query) async {
+    isLoadingSuggestions.value = true;
+    final results = await locationService.getSuggestions(query);
+    suggestions.assignAll(results);
+    isLoadingSuggestions.value = false;
+  }
+
+  void selectSuggestion(Map<String, dynamic> suggestion) {
+    print(suggestion);
+    final displayName = suggestion['display_name'];
+    final lat = double.tryParse(suggestion['lat'] ?? '');
+    final lon = double.tryParse(suggestion['lon'] ?? '');
+
+    cityController.text = displayName ?? "";
+    selectedCityName.value = displayName ?? "";
+    latitude.value = lat;
+    longitude.value = lon;
+
+    suggestions.clear();
+    currentField.value = "";
+    FocusManager.instance.primaryFocus?.unfocus();
   }
 
   var startDate = Rxn<DateTime>();
@@ -60,30 +100,11 @@ class PlantripFormController extends GetxController {
   void toggleDatePicker() {
     isDatePickerOpen.value = !isDatePickerOpen.value;
     currentField.value = "date";
+    suggestions.clear();
   }
 
   void selectPlace() {
     currentField.value = "place";
-  }
-
-  void pickDateRange() async {
-    final picked = await showDateRangePicker(
-      context: Get.context!, // required for showing modal
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
-      initialDateRange: startDate.value != null && endDate.value != null
-          ? DateTimeRange(start: startDate.value!, end: endDate.value!)
-          : null,
-    );
-
-    if (picked != null) {
-      startDate.value = picked.start;
-      endDate.value = picked.end;
-
-      // Update TextField
-      dateController.text =
-          "${picked.start.day}/${picked.start.month}/${picked.start.year} - ${picked.end.day}/${picked.end.month}/${picked.end.year}";
-    }
   }
 
   void selectCompanion(int index) {
@@ -97,7 +118,6 @@ class PlantripFormController extends GetxController {
   void updateDateRange(DateTime start, DateTime? end) {
     startDate.value = start;
     endDate.value = end;
-    // Format: "09 Sep - 13 Sep"
     final startStr = "${start.day} ${_getMonthData(start.month)}";
     final endStr = end != null
         ? "${end.day} ${_getMonthData(end.month)}"
@@ -123,36 +143,43 @@ class PlantripFormController extends GetxController {
     return months[month - 1];
   }
 
-  void setLocation(String name, double lat, double lng) {
-    cityController.text = name;
-    selectedCityName.value = name;
-    latitude.value = lat;
-    longitude.value = lng;
-    print("Selected: $name ($lat, $lng)");
-  }
+  void generateItinerary() async {
+    // Show loading page
+    Get.toNamed(Routes.GENERATING_LOADER);
 
-  void generateItinerary() {
-    print("Generating Itinerary for: ${cityController.text}");
-    print("Coordinates: ${latitude.value}, ${longitude.value}");
-    print("Dates: ${dateController.text}");
-    print("Companion: ${companions[selectedCompanion.value]['title']}");
-    print(
-      "Distance Option: ${selectedDistanceOption.value == 0 ? "Nearby" : "City Highlight"}",
-    );
-    final radius = radiusMap[selectedDistanceOption.value]['radius'];
+    final radius = radiusMap[selectedDistanceOption.value]['radius'] as int;
+    int totalDays =
+        (endDate.value?.difference(startDate.value ?? DateTime.now()).inDays ??
+            0) +
+        1;
+
     final requestBody = {
       "city": cityController.text,
       "centreLatitude": latitude.value,
       "centreLongitude": longitude.value,
-      "startDate": startDate.value,
-      "endDate": endDate.value,
+      "startDate": startDate.value?.toIso8601String(),
+      "endDate": endDate.value?.toIso8601String(),
       "companion": companions[selectedCompanion.value]['title'],
       "radius": radius,
       "maxSpotsPerDay": 3,
-      "noOfDays": 2,
+      "noOfDays": totalDays,
     };
-    itineraryService.generateItinerary(requestBody);
-    // TODO: Navigate or call API
+
+    print(requestBody);
+
+    try {
+      // Call service
+      final response = await itineraryService.generateItinerary(requestBody);
+
+      // Add a small delay so the user can see the "Generating" state
+      await Future.delayed(const Duration(seconds: 2));
+      // Navigate to the new itinerary page and pass the response as arguments
+      Get.offNamed(Routes.ITINERARY, arguments: response);
+    } catch (e) {
+      print("Error generating itinerary: $e");
+      Get.back(); // Close loader
+      Get.snackbar("Error", "Something went wrong while generating your trip.");
+    }
   }
 
   @override

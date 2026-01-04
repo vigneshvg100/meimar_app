@@ -10,6 +10,7 @@ class ItineraryService {
         "${ApiRoutes.ITENERARY_BASE_URL}${ApiRoutes.GENERATE_ITENERARY}",
         data: body,
       );
+      print(response.data);
       return response.data;
     } catch (e) {
       print(e);
