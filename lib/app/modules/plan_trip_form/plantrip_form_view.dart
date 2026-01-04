@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:meimar_app/app/modules/plan_trip_form/plantrip_form_controller.dart';
-import 'widgets/custom_date_range_picker.dart';
 import 'widgets/embedded_date_picker.dart';
 
 class PlanTripForm extends GetView<PlantripFormController> {
