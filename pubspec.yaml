@@ -37,6 +37,9 @@ dependencies:
   get: ^4.7.3
   flutter_screenutil: ^5.9.3
   flutter_svg: ^2.2.3
+  intl: ^0.20.2
+  calendar_date_picker2: ^2.0.1
+  dio: ^5.9.0
 
 dev_dependencies:
   flutter_test:

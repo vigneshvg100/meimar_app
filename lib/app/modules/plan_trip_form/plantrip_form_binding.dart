@@ -4,6 +4,6 @@ import 'package:meimar_app/app/modules/plan_trip_form/plantrip_form_controller.d
 class PlanTripFormBinding extends Bindings {
   @override
   void dependencies() {
-    Get.put(PlantripFormController());
+    Get.put<PlantripFormController>(PlantripFormController());
   }
 }

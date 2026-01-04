@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:get/get_state_manager/src/simple/get_view.dart';
+
 import 'package:meimar_app/app/modules/plan_trip_form/plantrip_form_binding.dart';
 import 'package:meimar_app/app/modules/plan_trip_form/plantrip_form_view.dart';
+import 'package:meimar_app/app/routes/app_pages.dart';
 import '../../shared_modules/footer_menu/footer_menu_view.dart';
 import 'package:get/get.dart';
 
-class HomeView extends GetView {
+class HomeView extends StatelessWidget {
   int _currentIndex = 0;
 
   @override
@@ -41,10 +42,7 @@ class HomeView extends GetView {
                   ),
                   Spacer(),
                   ElevatedButton(
-                    onPressed: () => Get.to(
-                      () => const PlanTripForm(),
-                      binding: PlanTripFormBinding(),
-                    ),
+                    onPressed: () => Get.toNamed("/plan-trip-form"),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color.fromARGB(255, 17, 19, 150),
                       padding: const EdgeInsets.symmetric(

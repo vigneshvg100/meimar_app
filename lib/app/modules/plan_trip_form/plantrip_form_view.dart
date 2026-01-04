@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:meimar_app/app/modules/plan_trip_form/plantrip_form_controller.dart';
-import 'package:flutter_svg/flutter_svg.dart'; // Make sure flutter_svg is in pubspec
+import 'widgets/custom_date_range_picker.dart';
+import 'widgets/embedded_date_picker.dart';
 
 class PlanTripForm extends GetView<PlantripFormController> {
   const PlanTripForm({super.key});
@@ -17,19 +18,27 @@ class PlanTripForm extends GetView<PlantripFormController> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Stack(
+                alignment: Alignment.center,
                 children: [
-                  GestureDetector(
-                    onTap: () => Get.back(),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(
-                          shape: BoxShape.circle, color: Color(0xFFF3F3F3)),
-                      child: const Icon(Icons.close, color: Colors.grey),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: GestureDetector(
+                      onTap: () => Get.back(),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color(0xFFF3F3F3),
+                        ),
+                        child: const Icon(
+                          Icons.close,
+                          color: Colors.grey,
+                          size: 20,
+                        ),
+                      ),
                     ),
                   ),
-                  const Spacer(),
                   Column(
                     children: [
                       const Text(
@@ -43,33 +52,35 @@ class PlanTripForm extends GetView<PlantripFormController> {
                       const SizedBox(height: 4),
                       Text(
                         'Tell us your travel style to begin',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                     ],
                   ),
-                  const Spacer(),
-                  const SizedBox(width: 40), // Balance the close button
                 ],
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 32),
 
               // Search City
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: TextField(
-                  controller: controller.cityController,
-                  decoration: const InputDecoration(
-                    prefixIcon: Icon(Icons.search, color: Colors.black),
-                    hintText: 'Search for city',
-                    hintStyle: TextStyle(color: Colors.grey),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(vertical: 16),
+              Obx(
+                () => Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: controller.currentField.value == "place"
+                        ? Border.all(color: const Color(0xFF0F4B38), width: 1.5)
+                        : Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: TextField(
+                    onTap: () {
+                      controller.selectPlace();
+                    },
+                    controller: controller.cityController,
+                    decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.search, color: Colors.black),
+                      hintText: 'Search for city',
+                      hintStyle: TextStyle(color: Colors.grey),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(vertical: 14),
+                    ),
                   ),
                 ),
               ),
@@ -85,28 +96,40 @@ class PlanTripForm extends GetView<PlantripFormController> {
                 ),
               ),
               const SizedBox(height: 12),
-              GestureDetector(
-                onTap: () {
-                    // TODO: Open Date Picker
-                },
-                child: Container(
+
+              Obx(
+                () => Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(8),
+                    border: controller.currentField.value == "date"
+                        ? Border.all(color: const Color(0xFF0F4B38), width: 1.5)
+                        : Border.all(color: Colors.grey.shade300),
                   ),
-                  child: AbsorbPointer(
-                    child: TextField(
-                      controller: controller.dateController,
-                      readOnly: true,
-                      decoration: const InputDecoration(
-                        prefixIcon:
-                            Icon(Icons.calendar_today_outlined, color: Colors.grey),
-                        hintText: 'Start & End Date',
-                        hintStyle: TextStyle(color: Colors.grey),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(vertical: 16),
+                  child: TextField(
+                    controller: controller.dateController,
+                    readOnly: true, // prevents keyboard from showing
+                    onTap: controller.toggleDatePicker,
+                    decoration: const InputDecoration(
+                      prefixIcon: Icon(
+                        Icons.calendar_today_outlined,
+                        color: Colors.grey,
                       ),
+                      hintText: 'Start & End Date',
+                      hintStyle: TextStyle(color: Colors.grey),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(vertical: 14),
                     ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Obx(
+                () => Visibility(
+                  visible: controller.isDatePickerOpen.value,
+                  child: EmbeddedDatePicker(
+                    startDate: controller.startDate.value,
+                    endDate: controller.endDate.value,
+                    onDateSelected: controller.updateDateRange,
                   ),
                 ),
               ),
@@ -122,80 +145,69 @@ class PlanTripForm extends GetView<PlantripFormController> {
                 ),
               ),
               const SizedBox(height: 12),
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: controller.companions.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 1.1, 
-                ),
-                itemBuilder: (context, index) {
-                  final item = controller.companions[index];
-                  return Obx(() {
-                    final isSelected =
-                        controller.selectedCompanion.value == index;
-                    return GestureDetector(
-                      onTap: () => controller.selectCompanion(index),
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? const Color(0xFFF3F0FF)
-                              : Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: List.generate(controller.companions.length, (
+                    index,
+                  ) {
+                    final item = controller.companions[index];
+                    return Obx(() {
+                      final isSelected =
+                          controller.selectedCompanion.value == index;
+                      return GestureDetector(
+                        onTap: () => controller.selectCompanion(index),
+                        child: Container(
+                          margin: const EdgeInsets.only(right: 12),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
                             color: isSelected
-                                ? const Color(0xFF6200EE) // Primary Purple
-                                : Colors.grey.shade200,
-                            width: isSelected ? 1.5 : 1,
+                                ? const Color(0xFFE8F5E9)
+                                : Colors
+                                      .transparent, // Light Green or Transparent
+                            border: Border.all(
+                              color: isSelected
+                                  ? Colors.transparent
+                                  : Colors.grey.shade300,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                item['icon'] as IconData,
+                                size: 18,
+                                color: Colors.black87,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                item['title'] as String,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              if (isSelected) ...[
+                                const SizedBox(width: 8),
+                                const Icon(
+                                  Icons.cancel,
+                                  size: 16,
+                                  color: Colors.black87,
+                                ),
+                              ],
+                            ],
                           ),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                    color: (item['id'] == 'solo' && isSelected) ? const Color.fromARGB(255, 179, 158, 241) : const Color(0xFFF5F5F5), // Light grey bg for icon
-                                    shape: BoxShape.circle,
-                                ),
-                                child: Icon(item['icon'] as IconData,
-                                    size: 20, color: isSelected ? const Color(0xFF6200EE) : Colors.purple)
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              item['title'] as String,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: isSelected
-                                    ? const Color(0xFF6200EE)
-                                    : Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              item['desc'] as String,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: isSelected
-                                    ? const Color(0xFF6200EE)
-                                    : Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  });
-                },
+                      );
+                    });
+                  }),
+                ),
               ),
-              const SizedBox(height: 24),
 
+              const SizedBox(height: 24),
               // Distance to be covered
               const Text(
                 'Distance to be covered',
@@ -206,19 +218,24 @@ class PlanTripForm extends GetView<PlantripFormController> {
                 ),
               ),
               const SizedBox(height: 12),
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: TextField(
-                  controller: controller.distanceController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    contentPadding:
-                        EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  ),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: List.generate(controller.radiusMap.length, (index) {
+                    final item = controller.radiusMap[index];
+                    return Obx(() {
+                      final isDistanceSelected =
+                          controller.selectedDistanceOption.value == index;
+                      return GestureDetector(
+                        onTap: () => controller.selectRadiusOption(index),
+                        child: _buildDistanceCard(
+                          index,
+                          item['title'] as String,
+                          item['description'] as String,
+                        ),
+                      );
+                    });
+                  }),
                 ),
               ),
               const SizedBox(height: 40),
@@ -229,10 +246,10 @@ class PlanTripForm extends GetView<PlantripFormController> {
                 child: ElevatedButton(
                   onPressed: controller.generateItinerary,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF131596), // Deep Blue
+                    backgroundColor: const Color(0xFF0F4B38), // Dark Green
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     elevation: 0,
                   ),
@@ -252,5 +269,49 @@ class PlanTripForm extends GetView<PlantripFormController> {
         ),
       ),
     );
+  }
+
+  Widget _buildDistanceCard(int index, String title, String subtitle) {
+    return Obx(() {
+      final isSelected = controller.selectedDistanceOption.value == index;
+      return GestureDetector(
+        onTap: () => controller.selectRadiusOption(index),
+        child: Container(
+          margin: const EdgeInsets.only(right: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isSelected
+                  ? const Color(0xFF0F4B38)
+                  : Colors.grey.shade300,
+              width: isSelected ? 1.5 : 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey[600],
+                  height: 1.3,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    });
   }
 }
