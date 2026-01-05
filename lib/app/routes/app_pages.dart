@@ -28,7 +28,7 @@ class AppPages {
     ),
     GetPage(
       name: _Paths.ITINERARY,
-      page: () => const ItineraryView(),
+      page: () => ItineraryView(),
       binding: ItineraryBinding(),
     ),
   ];

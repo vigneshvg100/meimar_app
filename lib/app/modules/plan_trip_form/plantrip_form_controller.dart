@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:meimar_app/app/data/api/services/itinerary_service.dart';
 import 'package:meimar_app/app/data/api/services/location_service.dart';
 import 'package:meimar_app/app/routes/app_pages.dart';
+import 'package:meimar_app/app/shared_modules/widgets/info_bars.dart';
 
 class PlantripFormController extends GetxController {
   final cityController = TextEditingController();
@@ -25,18 +26,18 @@ class PlantripFormController extends GetxController {
   final radiusMap = [
     {
       "title": "Nearby(0-5 km)",
-      "description": "Places close by with minimal travel",
+      "description": "Places close by with minimal travel.",
       "radius": 5000,
     },
     {
       "title": "City Highlight(5-15 km)",
-      "description": "Main attractions across the city ",
+      "description": "Main attractions across the city.",
       "radius": 15000,
     },
     {
-      "title": "City Highlight(15-25 km)",
-      "description": "Main attractions across the city ",
-      "radius": 25000,
+      "title": "Around the city(15-40 km)",
+      "description": "Outskirts and nearby day-trip spots.",
+      "radius": 40000,
     },
   ];
 
@@ -143,10 +144,55 @@ class PlantripFormController extends GetxController {
     return months[month - 1];
   }
 
-  void generateItinerary() async {
-    // Show loading page
-    Get.toNamed(Routes.GENERATING_LOADER);
+  bool validateFromDetails() {
+    if (cityController.text.isEmpty) {
+      showSnackbarWithoutTitle(
+        'Please enter a city name.',
+        color: const Color.fromARGB(255, 252, 113, 113),
+      );
+      return false;
+    }
+    if (latitude.value == null || longitude.value == null) {
+      showSnackbarWithoutTitle(
+        'Please select a location.',
+        color: const Color.fromARGB(255, 252, 113, 113),
+      );
+      return false;
+    }
+    if (startDate.value == null) {
+      showSnackbarWithoutTitle(
+        'Please select a start date.',
+        color: const Color.fromARGB(255, 252, 113, 113),
+      );
+      return false;
+    }
+    if (endDate.value == null) {
+      showSnackbarWithoutTitle(
+        'Please select an end date.',
+        color: const Color.fromARGB(255, 252, 113, 113),
+      );
+      return false;
+    }
+    if (selectedCompanion.value == 0) {
+      showSnackbarWithoutTitle(
+        'Please select a companion.',
+        color: const Color.fromARGB(255, 252, 113, 113),
+      );
+      return false;
+    }
+    if (selectedDistanceOption.value == 0) {
+      showSnackbarWithoutTitle(
+        'Please select a distance option.',
+        color: const Color.fromARGB(255, 252, 113, 113),
+      );
+      return false;
+    }
+    return true;
+  }
 
+  void generateItinerary() async {
+    if (!validateFromDetails()) return;
+    Get.toNamed(Routes.GENERATING_LOADER);
     final radius = radiusMap[selectedDistanceOption.value]['radius'] as int;
     int totalDays =
         (endDate.value?.difference(startDate.value ?? DateTime.now()).inDays ??
@@ -155,6 +201,7 @@ class PlantripFormController extends GetxController {
 
     final requestBody = {
       "city": cityController.text,
+      "dateText": dateController.text,
       "centreLatitude": latitude.value,
       "centreLongitude": longitude.value,
       "startDate": startDate.value?.toIso8601String(),
@@ -174,7 +221,7 @@ class PlantripFormController extends GetxController {
       // Add a small delay so the user can see the "Generating" state
       await Future.delayed(const Duration(seconds: 2));
       // Navigate to the new itinerary page and pass the response as arguments
-      Get.offNamed(Routes.ITINERARY, arguments: response);
+      Get.offNamed(Routes.ITINERARY, arguments: [requestBody, response]);
     } catch (e) {
       print("Error generating itinerary: $e");
       Get.back(); // Close loader

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
-class FooterMenu extends GetView {
+class FooterMenu extends StatelessWidget {
   final int? currentIndex;
   final Function(int) onTap;
 
@@ -14,63 +12,67 @@ class FooterMenu extends GetView {
 
   @override
   Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      type: BottomNavigationBarType.fixed,
-      items: [
-        BottomNavigationBarItem(
-          icon: SvgPicture.asset('assets/icons/home_current.svg'),
-          label: 'Home',
+    return Container(
+      height: 80,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildNavItem(0, Icons.home_outlined, "Home"),
+          _buildNavItem(1, Icons.calendar_month_outlined, "My Trip"),
+          _buildCenterButton(),
+          _buildNavItem(3, Icons.explore_outlined, "Guide"),
+          _buildNavItem(4, Icons.person_outline, "Profile"),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavItem(int index, IconData icon, String label) {
+    final bool isActive = currentIndex == index;
+    final color = isActive ? const Color(0xFF0F4B38) : Colors.grey[400];
+
+    return GestureDetector(
+      onTap: () => onTap(index),
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              color: color,
+              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCenterButton() {
+    return GestureDetector(
+      onTap: () => onTap(2),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: const BoxDecoration(
+          color: Color(0xFF0F4B38),
+          shape: BoxShape.circle,
         ),
-        BottomNavigationBarItem(
-          icon: SvgPicture.asset('assets/icons/my_trip_icon.svg'),
-          label: 'My Trip',
-        ),
-        BottomNavigationBarItem(
-          icon: SvgPicture.asset('assets/icons/add_blue_icon.svg'),
-          label: ' ',
-        ),
-        BottomNavigationBarItem(
-          icon: SvgPicture.asset('assets/icons/guide_icon.svg'),
-          label: 'Guide',
-        ),
-        BottomNavigationBarItem(
-          icon: SvgPicture.asset('assets/icons/profile.svg'),
-          label: 'Profile',
-        ),
-      ],
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
     );
   }
 }
-
-//      BottomNavigationBar(
-//       currentIndex: currentIndex,
-//       onTap: onTap,
-//       type: BottomNavigationBarType.fixed,
-//       selectedItemColor: Colors.blue,
-//       unselectedItemColor: Colors.grey,
-//       showUnselectedLabels: true,
-//       items: [
-//         BottomNavigationBarItem(
-//           icon: SvgPicture.asset('assets/icons/home_current.svg'),
-//           label: 'Home',
-//         ),
-//         BottomNavigationBarItem(
-//           icon: SvgPicture.asset('assets/icons/my_trip_icon.svg'),
-//           label: 'My Trip',
-//         ),
-//         BottomNavigationBarItem(
-//           icon: SvgPicture.asset('assets/icons/add_blue_icon.svg'),
-//           label: ' ',
-//         ),
-//         BottomNavigationBarItem(
-//           icon: SvgPicture.asset('assets/icons/guide_icon.svg'),
-//           label: 'Guide',
-//         ),
-//         BottomNavigationBarItem(
-//           icon: SvgPicture.asset('assets/icons/profile.svg'),
-//           label: 'Profile',
-//         ),
-//       ],
-//     );
-//   }
-// }

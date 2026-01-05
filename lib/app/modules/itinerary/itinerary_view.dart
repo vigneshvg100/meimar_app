@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../shared_modules/footer_menu/footer_menu_view.dart';
 import 'itinerary_controller.dart';
 
 class ItineraryView extends GetView<ItineraryController> {
@@ -8,29 +9,34 @@ class ItineraryView extends GetView<ItineraryController> {
 
   @override
   Widget build(BuildContext context) {
-    final data = controller.itineraryData;
+    final itineraryData = controller.itineraryData;
+    final metaData = controller.inputMeta;
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),
-      bottomNavigationBar: _buildBottomNav(),
+      bottomNavigationBar: FooterMenu(
+        currentIndex: 1,
+        onTap: (index) {
+          // Handle navigation if needed
+          if (index == 0) Get.offAllNamed('/home');
+        },
+      ),
       body: CustomScrollView(
         slivers: [
-          _buildSliverAppBar(data),
+          _buildSliverAppBar(metaData, itineraryData),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildDaySelector(data['days'] as List),
+                  _buildDaySelector(metaData['noOfDays'] as int),
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Obx(
                         () => Text(
-                          (data['days'] as List)[controller
-                              .selectedDay
-                              .value]['planTitle'],
+                          "Plan for Day ${controller.selectedDay.value + 1}",
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -53,11 +59,11 @@ class ItineraryView extends GetView<ItineraryController> {
                   ),
                   const SizedBox(height: 16),
                   Obx(() {
+                    final dayKey = 'day${controller.selectedDay.value + 1}';
                     final activities =
-                        (data['days'] as List)[controller
-                                .selectedDay
-                                .value]['activities']
-                            as List;
+                        (itineraryData['suggestedPackage'] as Map)[dayKey]
+                            as List? ??
+                        [];
                     return ListView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -70,6 +76,27 @@ class ItineraryView extends GetView<ItineraryController> {
                       },
                     );
                   }),
+                  const SizedBox(height: 32),
+                  const Text(
+                    "Discover More",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 180,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount:
+                          (itineraryData['additionalPlaces'] as List?)
+                              ?.length ??
+                          0,
+                      itemBuilder: (context, index) {
+                        final place = itineraryData['additionalPlaces'][index];
+                        return _buildAdditionalPlaceCard(place);
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 40),
                 ],
               ),
             ),
@@ -79,7 +106,75 @@ class ItineraryView extends GetView<ItineraryController> {
     );
   }
 
-  Widget _buildSliverAppBar(Map<String, dynamic> data) {
+  Widget _buildAdditionalPlaceCard(Map<String, dynamic> place) {
+    return Container(
+      width: 140,
+      margin: const EdgeInsets.only(right: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            child: Image.network(
+              "https://picsum.photos/seed/${place['spot_id']}/140/90",
+              height: 90,
+              width: 140,
+              fit: BoxFit.cover,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  place['spot_name'] ?? "",
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.star, size: 10, color: Colors.amber),
+                    const SizedBox(width: 2),
+                    Text(
+                      "${place['rating'] ?? 'N/A'}",
+                      style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "${(place['distance_meters'] / 1000).toStringAsFixed(1)} km away",
+                  style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSliverAppBar(
+    Map<String, dynamic> metaData,
+    Map<String, dynamic> itineraryData,
+  ) {
     return SliverAppBar(
       expandedHeight: 280,
       pinned: true,
@@ -102,7 +197,10 @@ class ItineraryView extends GetView<ItineraryController> {
         background: Stack(
           fit: StackFit.expand,
           children: [
-            Image.network(data['image'], fit: BoxFit.cover),
+            Image.network(
+              "https://picsum.photos/seed/coorg/400/300",
+              fit: BoxFit.cover,
+            ),
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -140,7 +238,7 @@ class ItineraryView extends GetView<ItineraryController> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            data['title'],
+                            "Trip to ${metaData['city'] ?? ''}",
                             style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
@@ -148,7 +246,7 @@ class ItineraryView extends GetView<ItineraryController> {
                             ),
                           ),
                           Text(
-                            data['subtitle'],
+                            "${metaData['noOfDays'] ?? 0} Days • ${metaData['companion'] ?? 'Personal'} Trip",
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[600],
@@ -164,7 +262,7 @@ class ItineraryView extends GetView<ItineraryController> {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                data['dates'],
+                                metaData['dateText'],
                                 style: TextStyle(
                                   color: Colors.grey[600],
                                   fontSize: 13,
@@ -178,7 +276,7 @@ class ItineraryView extends GetView<ItineraryController> {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                "${data['spots']} Spots",
+                                "${(itineraryData['additionalPlaces'] as List?)?.length ?? 0} Spots",
                                 style: TextStyle(
                                   color: Colors.grey[600],
                                   fontSize: 13,
@@ -192,7 +290,7 @@ class ItineraryView extends GetView<ItineraryController> {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: Image.network(
-                        data['mapImage'],
+                        "https://picsum.photos/seed/map/200/200",
                         width: 80,
                         height: 80,
                         fit: BoxFit.cover,
@@ -208,11 +306,11 @@ class ItineraryView extends GetView<ItineraryController> {
     );
   }
 
-  Widget _buildDaySelector(List days) {
+  Widget _buildDaySelector(int noOfDays) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: List.generate(days.length, (index) {
+        children: List.generate(noOfDays, (index) {
           return Obx(() {
             final isSelected = controller.selectedDay.value == index;
             return GestureDetector(
@@ -236,7 +334,7 @@ class ItineraryView extends GetView<ItineraryController> {
                 child: Column(
                   children: [
                     Text(
-                      "Day ${days[index]['day']}",
+                      "Day ${index + 1}",
                       style: TextStyle(
                         fontSize: 12,
                         color: isSelected
@@ -246,7 +344,7 @@ class ItineraryView extends GetView<ItineraryController> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      days[index]['date'],
+                      "${index + 1}",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -286,10 +384,16 @@ class ItineraryView extends GetView<ItineraryController> {
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: Image.network(
-              activity['image'],
+              "https://picsum.photos/seed/${activity['spot_id']}/80/80",
               width: 80,
               height: 80,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                width: 80,
+                height: 80,
+                color: Colors.grey[200],
+                child: const Icon(Icons.image_outlined, color: Colors.grey),
+              ),
             ),
           ),
           const SizedBox(width: 16),
@@ -300,11 +404,17 @@ class ItineraryView extends GetView<ItineraryController> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      activity['name'],
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Text(
+                        activity['spot_name'] ??
+                            activity['resolved_name'] ??
+                            "",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     const Icon(Icons.more_vert, size: 20, color: Colors.grey),
@@ -312,7 +422,7 @@ class ItineraryView extends GetView<ItineraryController> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  activity['description'],
+                  activity['address'] ?? "",
                   style: TextStyle(
                     fontSize: 13,
                     color: Colors.grey[600],
@@ -324,23 +434,17 @@ class ItineraryView extends GetView<ItineraryController> {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Icon(Icons.access_time, size: 14, color: Colors.grey[600]),
+                    const Icon(Icons.star, size: 14, color: Colors.amber),
                     const SizedBox(width: 4),
                     Text(
-                      activity['duration'],
+                      "${activity['rating'] ?? 'N/A'}",
                       style: TextStyle(color: Colors.grey[600], fontSize: 12),
                     ),
                     const SizedBox(width: 12),
-                    Icon(
-                      activity['type'] == 'food'
-                          ? Icons.restaurant
-                          : Icons.directions_walk,
-                      size: 14,
-                      color: Colors.grey[600],
-                    ),
+                    Icon(Icons.access_time, size: 14, color: Colors.grey[600]),
                     const SizedBox(width: 4),
                     Text(
-                      activity['time'],
+                      "${activity['estimated_duration'] ?? 0} mins",
                       style: TextStyle(color: Colors.grey[600], fontSize: 12),
                     ),
                   ],
@@ -396,50 +500,6 @@ class ItineraryView extends GetView<ItineraryController> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildBottomNav() {
-    return Container(
-      height: 80,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(Icons.home_outlined, "Home", false),
-          _buildNavItem(Icons.calendar_month_outlined, "My Trip", false),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: const BoxDecoration(
-              color: Color(0xFF0F4B38),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.add, color: Colors.white),
-          ),
-          _buildNavItem(Icons.explore_outlined, "Guide", false),
-          _buildNavItem(Icons.person_outline, "Profile", false),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, String label, bool isActive) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icon, color: Colors.grey[400]),
-        const SizedBox(height: 4),
-        Text(label, style: TextStyle(fontSize: 10, color: Colors.grey[400])),
-      ],
     );
   }
 }

@@ -10,6 +10,41 @@ class PlanTripForm extends GetView<PlantripFormController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: controller.generateItinerary,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0F4B38), // Dark Green
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 0,
+            ),
+            child: const Text(
+              'Generate Itinerary',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -277,31 +312,6 @@ class PlanTripForm extends GetView<PlantripFormController> {
                       );
                     });
                   }),
-                ),
-              ),
-              const SizedBox(height: 40),
-
-              // Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: controller.generateItinerary,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0F4B38), // Dark Green
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'Generate Itinerary',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
                 ),
               ),
               const SizedBox(height: 20),
