@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../shared_modules/footer_menu/footer_menu_view.dart';
+import '../../routes/app_pages.dart';
 import 'itinerary_controller.dart';
 
 class ItineraryView extends GetView<ItineraryController> {
@@ -107,66 +108,71 @@ class ItineraryView extends GetView<ItineraryController> {
   }
 
   Widget _buildAdditionalPlaceCard(Map<String, dynamic> place) {
-    return Container(
-      width: 140,
-      margin: const EdgeInsets.only(right: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            child: Image.network(
-              "https://picsum.photos/seed/${place['spot_id']}/140/90",
-              height: 90,
-              width: 140,
-              fit: BoxFit.cover,
+    return GestureDetector(
+      onTap: () => Get.toNamed(Routes.SPOT, arguments: place),
+      child: Container(
+        width: 140,
+        margin: const EdgeInsets.only(right: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  place['spot_name'] ?? "",
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(Icons.star, size: 10, color: Colors.amber),
-                    const SizedBox(width: 2),
-                    Text(
-                      "${place['rating'] ?? 'N/A'}",
-                      style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
+              child: Image.network(
+                "https://picsum.photos/seed/${place['spot_id']}/140/90",
+                height: 90,
+                width: 140,
+                fit: BoxFit.cover,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    place['spot_name'] ?? "",
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
                     ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  "${(place['distance_meters'] / 1000).toStringAsFixed(1)} km away",
-                  style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-                ),
-              ],
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.star, size: 10, color: Colors.amber),
+                      const SizedBox(width: 2),
+                      Text(
+                        "${place['rating'] ?? 'N/A'}",
+                        style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "${(place['distance_meters'] / 1000).toStringAsFixed(1)} km away",
+                    style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -364,95 +370,102 @@ class ItineraryView extends GetView<ItineraryController> {
   }
 
   Widget _buildActivityCard(Map<String, dynamic> activity) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.network(
-              "https://picsum.photos/seed/${activity['spot_id']}/80/80",
-              width: 80,
-              height: 80,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(
+    return GestureDetector(
+      onTap: () => Get.toNamed(Routes.SPOT, arguments: activity),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(
+                "https://picsum.photos/seed/${activity['spot_id']}/80/80",
                 width: 80,
                 height: 80,
-                color: Colors.grey[200],
-                child: const Icon(Icons.image_outlined, color: Colors.grey),
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  width: 80,
+                  height: 80,
+                  color: Colors.grey[200],
+                  child: const Icon(Icons.image_outlined, color: Colors.grey),
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        activity['spot_name'] ??
-                            activity['resolved_name'] ??
-                            "",
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          activity['spot_name'] ??
+                              activity['resolved_name'] ??
+                              "",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    const Icon(Icons.more_vert, size: 20, color: Colors.grey),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  activity['address'] ?? "",
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey[600],
-                    height: 1.3,
+                      const Icon(Icons.more_vert, size: 20, color: Colors.grey),
+                    ],
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    const Icon(Icons.star, size: 14, color: Colors.amber),
-                    const SizedBox(width: 4),
-                    Text(
-                      "${activity['rating'] ?? 'N/A'}",
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                  const SizedBox(height: 4),
+                  Text(
+                    activity['address'] ?? "",
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[600],
+                      height: 1.3,
                     ),
-                    const SizedBox(width: 12),
-                    Icon(Icons.access_time, size: 14, color: Colors.grey[600]),
-                    const SizedBox(width: 4),
-                    Text(
-                      "${activity['estimated_duration'] ?? 0} mins",
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                    ),
-                  ],
-                ),
-              ],
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      const Icon(Icons.star, size: 14, color: Colors.amber),
+                      const SizedBox(width: 4),
+                      Text(
+                        "${activity['rating'] ?? 'N/A'}",
+                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      ),
+                      const SizedBox(width: 12),
+                      Icon(
+                        Icons.access_time,
+                        size: 14,
+                        color: Colors.grey[600],
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        "${activity['estimated_duration'] ?? 0} mins",
+                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

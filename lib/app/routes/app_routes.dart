@@ -7,6 +7,7 @@ abstract class Routes {
   static const ITINERARY = _Paths.ITINERARY;
   static const PLAN_TRIP_FORM = _Paths.PLAN_TRIP_FORM;
   static const GENERATING_LOADER = _Paths.GENERATING_LOADER;
+  static const SPOT = _Paths.SPOT;
 }
 
 abstract class _Paths {
@@ -15,4 +16,5 @@ abstract class _Paths {
   static const ITINERARY = '/itinerary';
   static const PLAN_TRIP_FORM = '/plan-trip-form';
   static const GENERATING_LOADER = '/generating-loader';
+  static const SPOT = '/spot';
 }

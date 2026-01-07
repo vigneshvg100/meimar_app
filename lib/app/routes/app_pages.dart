@@ -7,6 +7,8 @@ import '../modules/plan_trip_form/plantrip_form_binding.dart';
 import '../modules/plan_trip_form/plantrip_form_view.dart';
 import '../modules/itinerary/itinerary_binding.dart';
 import '../modules/itinerary/itinerary_view.dart';
+import '../modules/spot/spot_binding.dart';
+import '../modules/spot/spot_view.dart';
 
 part 'app_routes.dart';
 
@@ -31,5 +33,6 @@ class AppPages {
       page: () => ItineraryView(),
       binding: ItineraryBinding(),
     ),
+    GetPage(name: _Paths.SPOT, page: () => SpotView(), binding: SpotBinding()),
   ];
 }
