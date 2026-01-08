@@ -23,7 +23,7 @@ class ItineraryView extends GetView<ItineraryController> {
       ),
       body: CustomScrollView(
         slivers: [
-          _buildSliverAppBar(metaData, itineraryData),
+          _buildSliverAppBar(context, metaData, itineraryData),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(20.0),
@@ -178,6 +178,7 @@ class ItineraryView extends GetView<ItineraryController> {
   }
 
   Widget _buildSliverAppBar(
+    BuildContext context,
     Map<String, dynamic> metaData,
     Map<String, dynamic> itineraryData,
   ) {
@@ -191,8 +192,14 @@ class ItineraryView extends GetView<ItineraryController> {
       ),
       actions: [
         IconButton(
+          icon: const Icon(Icons.download_for_offline, color: Colors.white),
+          onPressed: () {
+            controller.saveItineraryOffline();
+          },
+        ),
+        IconButton(
           icon: const Icon(Icons.checklist, color: Colors.white),
-          onPressed: () {},
+          onPressed: () => _showChecklistDialog(context),
         ),
         IconButton(
           icon: const Icon(Icons.share_outlined, color: Colors.white),
@@ -513,6 +520,184 @@ class ItineraryView extends GetView<ItineraryController> {
           ),
         ),
       ),
+    );
+  }
+
+  void _showChecklistDialog(BuildContext context) {
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Trip Checklist",
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Obx(
+                        () => Text(
+                          "${controller.completedChecklistItems} of ${controller.totalChecklistItems} Completed",
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  IconButton(
+                    onPressed: () => Get.back(),
+                    icon: const Icon(Icons.close, color: Colors.black54),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 16),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Obx(
+                    () => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: controller.checklistCategories
+                          .asMap()
+                          .entries
+                          .map((categoryEntry) {
+                            final categoryIndex = categoryEntry.key;
+                            final category = categoryEntry.value;
+                            final List<Map<String, dynamic>> items =
+                                List<Map<String, dynamic>>.from(
+                                  category['items'] as Iterable,
+                                );
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  category['name'],
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                ...items.asMap().entries.map((itemEntry) {
+                                  final itemIndex = itemEntry.key;
+                                  final Map<String, dynamic> item =
+                                      itemEntry.value;
+                                  final bool isCompleted =
+                                      item['completed'] as bool;
+
+                                  return GestureDetector(
+                                    onTap: () => controller.toggleChecklistItem(
+                                      categoryIndex,
+                                      itemIndex,
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(
+                                        bottom: 12,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            width: 22,
+                                            height: 22,
+                                            decoration: BoxDecoration(
+                                              color: isCompleted
+                                                  ? const Color(0xFF0F4B38)
+                                                  : Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                              border: Border.all(
+                                                color: isCompleted
+                                                    ? const Color(0xFF0F4B38)
+                                                    : Colors.grey.shade300,
+                                                width: 1.5,
+                                              ),
+                                            ),
+                                            child: isCompleted
+                                                ? const Icon(
+                                                    Icons.check,
+                                                    size: 14,
+                                                    color: Colors.white,
+                                                  )
+                                                : null,
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Text(
+                                              item['text'],
+                                              style: TextStyle(
+                                                fontSize: 15,
+                                                color: isCompleted
+                                                    ? Colors.grey[400]
+                                                    : Colors.black87,
+                                                decoration: isCompleted
+                                                    ? TextDecoration.lineThrough
+                                                    : null,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                                const SizedBox(height: 16),
+                              ],
+                            );
+                          })
+                          .toList(),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () {},
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    side: const BorderSide(color: Color(0xFF0F4B38)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    "Add Item",
+                    style: TextStyle(
+                      color: Color(0xFF0F4B38),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      barrierDismissible: true,
     );
   }
 }

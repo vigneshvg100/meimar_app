@@ -1,4 +1,6 @@
 import 'package:get/get.dart';
+import 'package:hive/hive.dart';
+import 'package:meimar_app/app/shared_modules/widgets/info_bars.dart';
 
 class ItineraryController extends GetxController {
   final selectedDay = 0.obs;
@@ -12,16 +14,22 @@ class ItineraryController extends GetxController {
     final args = Get.arguments;
     print("ItineraryController.onInit triggered with args: $args");
 
-    // Robustly handle different states of navigation arguments
+    // Robustly handle different states of navigation arguments with explicit casting
     if (args is List && args.length >= 2) {
-      inputMeta = args[0] is Map<String, dynamic> ? args[0] : _getDefaultMeta();
-      itineraryDataFromApi = args[1] is Map<String, dynamic> ? args[1] : {};
+      inputMeta = args[0] is Map
+          ? Map<String, dynamic>.from(args[0] as Map)
+          : _getDefaultMeta();
+      itineraryDataFromApi = args[1] is Map
+          ? Map<String, dynamic>.from(args[1] as Map)
+          : {};
       // Prioritize API data if available, otherwise use New Sample Data
       itineraryData = itineraryDataFromApi.isNotEmpty
           ? itineraryDataFromApi
           : _getSampleData1();
     } else if (args is List && args.length >= 1) {
-      inputMeta = args[0] is Map<String, dynamic> ? args[0] : _getDefaultMeta();
+      inputMeta = args[0] is Map
+          ? Map<String, dynamic>.from(args[0] as Map)
+          : _getDefaultMeta();
       itineraryDataFromApi = {};
       itineraryData = _getSampleData1();
     } else {
@@ -42,6 +50,67 @@ class ItineraryController extends GetxController {
 
   void changeDay(int index) {
     selectedDay.value = index;
+  }
+
+  // Checklist state
+  final checklistCategories = <Map<String, dynamic>>[
+    {
+      "name": "Essentials",
+      "items": RxList<Map<String, dynamic>>([
+        {"text": "ID/Document", "completed": true},
+        {"text": "Phone charger/Power Bank", "completed": false},
+        {"text": "Cash/Card", "completed": false},
+      ]),
+    },
+    {
+      "name": "Clothing",
+      "items": RxList<Map<String, dynamic>>([
+        {"text": "Comfortable walking shoes", "completed": true},
+        {"text": "Rainwear", "completed": false},
+      ]),
+    },
+  ].obs;
+
+  int get totalChecklistItems {
+    int total = 0;
+    for (var category in checklistCategories) {
+      total += (category['items'] as RxList).length;
+    }
+    return total;
+  }
+
+  int get completedChecklistItems {
+    int completed = 0;
+    for (var category in checklistCategories) {
+      final items = category['items'] as RxList;
+      completed += items.where((item) => item['completed'] == true).length;
+    }
+    return completed;
+  }
+
+  void toggleChecklistItem(int categoryIndex, int itemIndex) {
+    try {
+      final category = checklistCategories[categoryIndex];
+      final RxList<Map<String, dynamic>> items =
+          category['items'] as RxList<Map<String, dynamic>>;
+      final Map<String, dynamic> item = Map<String, dynamic>.from(
+        items[itemIndex],
+      );
+
+      items[itemIndex] = <String, dynamic>{
+        ...item,
+        'completed': !(item['completed'] as bool),
+      };
+      checklistCategories.refresh();
+    } catch (e) {
+      print("Error toggling checklist item: $e");
+    }
+  }
+
+  void saveItineraryOffline() {
+    final box = Hive.box('itinerary');
+    box.put('itinerary', itineraryData);
+    showSnackbarWithoutTitle("Itinerary saved offline successfully");
   }
 
   Map<String, dynamic> _getSampleData1() {
